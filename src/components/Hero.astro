@@ -1,0 +1,148 @@
+---
+const stack = ['📊 Python', '🐼 pandas', '🧮 SQL', '📓 Jupyter', '📈 matplotlib · seaborn', '🤖 LLMs · RAG', '🔧 Git'];
+---
+<section id="top" class="hero">
+  <span class="blob blob--coral"></span>
+  <span class="blob blob--mint"></span>
+  <span class="blob blob--lemon"></span>
+
+  <div class="container hero__inner">
+    <div class="hero__intro reveal">
+      <span class="sticker">
+        <span class="live-dot"></span>
+        Open to junior data roles
+      </span>
+    </div>
+
+    <h1 class="hero__title reveal">
+      Hey, I'm <span class="mark-coral">Dimitris</span>.<br/>
+      I turn <span class="squiggle">data</span> &amp; <span class="squiggle mint">code</span><br/>
+      into things that <span class="mark-lavender">work</span>.
+    </h1>
+
+    <p class="hero__lede reveal">
+      Computer Science graduate (AUEB) from Athens, building a career
+      in data. I use Python and SQL to collect, clean and analyse data,
+      and AI/LLM tools daily to build data workflows — from football xG
+      models to RAG pipelines over EU legislation.
+    </p>
+
+    <div class="hero__cta reveal">
+      <a class="btn" href="#projects">
+        See my work
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+      </a>
+      <a class="btn btn--ghost" href="/Dimitris_Liaropoulos_CV.pdf" target="_blank" rel="noopener">
+        Download CV
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 4v12M6 11l6 6 6-6M5 20h14"/>
+        </svg>
+      </a>
+    </div>
+
+    <ul class="hero__strip reveal" aria-label="What I work with">
+      {stack.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .hero {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding-top: 7rem;
+    padding-bottom: 4rem;
+    overflow: hidden;
+  }
+
+  .hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+
+  .hero__intro { display: flex; }
+
+  .hero__title {
+    font-size: var(--fs-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    max-width: 18ch;
+    margin-top: 0.2em;
+  }
+
+  .hero__lede {
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+    max-width: 56ch;
+    line-height: 1.55;
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.4rem;
+  }
+
+  .hero__strip {
+    list-style: none;
+    margin: 1.8rem 0 0;
+    padding: 1.6rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    align-items: center;
+    border-top: 1.5px dashed var(--ink-muted);
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+  }
+
+  .hero__strip li + li::before {
+    content: '•';
+    margin-right: 1rem;
+    color: var(--ink-muted);
+  }
+
+  /* blob colors & positions */
+  .blob--coral {
+    background: var(--coral);
+    width: 420px;
+    height: 420px;
+    top: -120px;
+    right: -80px;
+    animation-delay: -2s;
+  }
+  .blob--mint {
+    background: var(--mint);
+    width: 360px;
+    height: 360px;
+    bottom: -120px;
+    left: -100px;
+    animation-delay: -7s;
+  }
+  .blob--lemon {
+    background: var(--lemon);
+    width: 280px;
+    height: 280px;
+    top: 35%;
+    right: 35%;
+    animation-delay: -12s;
+    opacity: 0.4;
+  }
+
+  @media (max-width: 700px) {
+    .hero { padding-top: 6rem; }
+    .blob--coral { width: 280px; height: 280px; }
+    .blob--mint { width: 240px; height: 240px; }
+    .blob--lemon { width: 180px; height: 180px; }
+    /* wrapped lines would start with a stray bullet — drop separators on small screens */
+    .hero__strip { gap: 0.5rem 1.2rem; }
+    .hero__strip li + li::before { content: none; }
+  }
+</style>

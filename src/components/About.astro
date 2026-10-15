@@ -1,0 +1,193 @@
+---
+const facts = [
+  { emoji: '📍', label: 'Based in',   value: 'Athens, Greece' },
+  { emoji: '🎓', label: 'Degree',     value: 'BSc CS · AUEB' },
+  { emoji: '🎯', label: 'Looking for', value: 'Junior data role' },
+  { emoji: '⚽', label: 'Off-screen', value: 'Competitive futsal' },
+  { emoji: '🗣️', label: 'Languages',  value: 'Greek · English' },
+  { emoji: '🚗', label: 'Also',       value: 'Army done · Cat. B' },
+];
+
+const colors = ['lemon', 'mint', 'coral', 'lavender', 'pink', 'sky'];
+
+const skillGroups = [
+  { label: 'Programming & data', skills: ['Python', 'pandas', 'NumPy', 'SQL', 'SQLite', 'Jupyter', 'Excel'] },
+  { label: 'Analysis',           skills: ['EDA', 'Trends & anomalies', 'Basic statistics', 'Data-quality checks'] },
+  { label: 'AI / LLM',           skills: ['Claude', 'ChatGPT', 'RAG', 'LangChain', 'ChromaDB', 'AI agents'] },
+  { label: 'Visualization',      skills: ['matplotlib', 'seaborn'] },
+  { label: 'Familiar with',      skills: ['Git / GitHub', 'Docker', 'FastAPI', 'PySpark', 'Databricks', 'Azure', 'React / Vite', 'Vercel', 'Railway'] },
+];
+---
+<section id="about" class="about">
+  <div class="container about__grid">
+    <div class="about__heading reveal">
+      <span class="eyebrow">About me</span>
+      <h2>
+        A <span class="mark-mint">data person</span><br/>
+        with a <span class="squiggle coral">builder's</span><br/>
+        instinct.
+      </h2>
+    </div>
+
+    <div class="about__body reveal">
+      <p class="about__para">
+        I'm Dimitris — a <strong>Computer Science graduate from AUEB</strong>
+        building a career in data. I like opening a notebook, loading a
+        dataset I care about and making it tell me something I didn't
+        know — then checking whether that something actually holds up.
+      </p>
+      <p class="about__para">
+        Day to day I work in <strong>Python (pandas) and SQL</strong> across
+        the whole data lifecycle: pulling data from APIs, cleaning and
+        reconciling it, exploring it and reporting it clearly. I use
+        <strong>AI/LLM tools</strong> every day to build workflows and
+        pick up new techniques fast — most recently RAG pipelines and
+        simple AI agents.
+      </p>
+
+      <div class="facts">
+        {facts.map((f) => (
+          <div class="fact">
+            <span class="fact__emoji" aria-hidden="true">{f.emoji}</span>
+            <div>
+              <div class="fact__label">{f.label}</div>
+              <div class="fact__value">{f.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="about__skills reveal">
+      <span class="eyebrow">Toolbelt</span>
+      <dl class="skill-groups">
+        {skillGroups.map((g, gi) => (
+          <div class="skill-group">
+            <dt class="skill-group__label">{g.label}</dt>
+            <dd class="skill-cloud">
+              {g.skills.map((s, i) => (
+                <span class={`chip chip--${colors[(gi + i) % colors.length]}`} style={`--rot:${((gi + i) % 5) - 2}deg`}>
+                  {s}
+                </span>
+              ))}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem 5rem;
+    align-items: start;
+  }
+
+  .about__heading h2 {
+    font-size: var(--fs-2xl);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 144, 'SOFT' 80;
+  }
+
+  .about__body { display: flex; flex-direction: column; gap: 1.4rem; }
+
+  .about__para {
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .about__para strong { color: var(--ink); font-weight: 600; }
+
+  .facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.6rem;
+    padding: 1.4rem;
+    background: var(--paper-2);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sticker);
+  }
+
+  .fact { display: flex; align-items: center; gap: 0.7rem; }
+  .fact__emoji { font-size: 1.5rem; line-height: 1; }
+  .fact__label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .fact__value { font-weight: 600; font-size: var(--fs-sm); }
+
+  .about__skills { grid-column: 1 / -1; }
+
+  .skill-groups {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+  }
+
+  .skill-group {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 0.6rem 1.2rem;
+    align-items: center;
+  }
+
+  .skill-group__label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .skill-cloud {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .chip {
+    display: inline-block;
+    padding: 0.45rem 0.95rem;
+    border: 2px solid var(--ink);
+    border-radius: var(--r-pill);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    box-shadow: 3px 3px 0 var(--ink);
+    transform: rotate(var(--rot, 0deg));
+    transition: transform 0.25s var(--ease-bounce), box-shadow 0.25s ease;
+    cursor: default;
+  }
+
+  .chip:hover {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+
+  .chip--coral    { background: var(--surf-coral); }
+  .chip--lemon    { background: var(--surf-lemon); }
+  .chip--mint     { background: var(--surf-mint); }
+  .chip--lavender { background: var(--surf-lavender); }
+  .chip--pink     { background: var(--surf-pink); }
+  .chip--sky      { background: var(--surf-sky); }
+
+  @media (max-width: 900px) {
+    .about__grid { grid-template-columns: 1fr; gap: 2.6rem; }
+    .about__heading h2 { font-size: var(--fs-xl); }
+    .skill-group { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .facts { grid-template-columns: 1fr; padding: 1.1rem; }
+  }
+</style>

@@ -1,0 +1,246 @@
+---
+const jobs = [
+  {
+    role: 'Data & Operations Coordinator',
+    org: 'GamePlan Digital Football Agency',
+    period: 'Jan 2026 — Sep 2026',
+    accent: 'mint',
+    points: [
+      'Consolidated, reconciled and validated player data from multiple agencies and external sources (Cosmos, Sports Connection, Fides) with systematic data-quality checks.',
+      'Built and maintained the player database (~75–80 records), standardising names and cross-referencing against Transfermarkt.',
+      'Ran the matchday content pipeline — collecting materials, briefing the designer, editing in Photoshop and publishing posts for matchdays, signings and transfers.',
+    ],
+  },
+  {
+    role: 'Sales Consultant',
+    org: 'Kotsovolos',
+    period: 'Oct 2020 — Nov 2023',
+    accent: 'lemon',
+    points: [
+      'Advised customers in a high-volume, target-driven retail environment, consistently meeting sales targets and owning issues end-to-end.',
+      'Worked with performance metrics and reporting, and with the team to improve store results under tight deadlines.',
+    ],
+  },
+  {
+    role: 'Junior Software Engineer (Intern)',
+    org: 'Intelligencia.ai',
+    period: 'May 2019 — Aug 2019',
+    accent: 'lavender',
+    points: [
+      'Wrote automated BDD validation tests (Cucumber.js / Gherkin) for the company’s React web app.',
+      'Hands-on frontend exposure in a startup: React hooks, async code and basic HTML/CSS components.',
+    ],
+  },
+];
+
+const education = [
+  { title: 'BSc in Computer Science', where: 'Athens University of Economics and Business (AUEB)', when: 'Graduated May 2025', emoji: '🎓' },
+  { title: 'AI Knowledge Engineering with Data', where: 'Accenture × Code.Hub bootcamp · GTGH program, ~90 hours', when: 'May — Jun 2026', emoji: '🧠' },
+  { title: 'Building with LLMs — MCP, AI Agents, Workflows', where: 'Anthropic courses · online', when: 'In progress', emoji: '🤖' },
+  { title: 'Data Engineering Plan — LakeFlow, Spark, Pipelines', where: 'Databricks Academy · online', when: 'In progress', emoji: '⚡' },
+];
+---
+<section id="experience" class="experience">
+  <div class="container">
+    <header class="experience__head reveal">
+      <span class="eyebrow">Experience</span>
+      <h2>
+        Where I've <span class="squiggle mint">worked</span><br/>
+        &amp; <span class="mark-lemon">learned</span>.
+      </h2>
+    </header>
+
+    <div class="experience__grid">
+      <ol class="timeline">
+        {jobs.map((j, i) => (
+          <li class={`job job--${j.accent} reveal`} style={`--idx:${i}`}>
+            <div class="job__head">
+              <h3 class="job__role">{j.role}</h3>
+              <span class="job__period">{j.period}</span>
+            </div>
+            <p class="job__org">{j.org}</p>
+            <ul class="job__points">
+              {j.points.map((pt) => <li>{pt}</li>)}
+            </ul>
+          </li>
+        ))}
+      </ol>
+
+      <aside class="edu reveal" aria-labelledby="edu-title">
+        <h3 id="edu-title" class="edu__title">Education &amp; training</h3>
+        <ul class="edu__list">
+          {education.map((e) => (
+            <li class="edu__item">
+              <span class="edu__emoji" aria-hidden="true">{e.emoji}</span>
+              <div>
+                <div class="edu__name">{e.title}</div>
+                <div class="edu__where">{e.where}</div>
+                <div class="edu__when">{e.when}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .experience__head {
+    max-width: 720px;
+    margin-bottom: 3rem;
+  }
+
+  .experience__head h2 {
+    font-size: var(--fs-2xl);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+  }
+
+  .experience__grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2.4rem;
+    align-items: start;
+  }
+
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 1.6rem;
+    border-left: 2px dashed var(--ink-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+
+  .job {
+    --dot: var(--coral);
+    position: relative;
+    padding: 1.3rem 1.4rem;
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-lg);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+
+  /* timeline marker sitting on the dashed rail */
+  .job::before {
+    content: '';
+    position: absolute;
+    top: 1.55rem;
+    left: calc(-1.6rem - 10px);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--dot);
+    border: 2px solid var(--ink);
+  }
+
+  .job--mint     { --dot: var(--mint); }
+  .job--lemon    { --dot: var(--lemon); }
+  .job--lavender { --dot: var(--lavender); }
+
+  .job__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.3rem 1rem;
+  }
+
+  .job__role {
+    font-size: 1.3rem;
+    line-height: 1.15;
+  }
+
+  .job__period {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+  }
+
+  .job__org {
+    margin-top: 0.25rem;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+  }
+
+  .job__points {
+    margin: 0.8rem 0 0;
+    padding-left: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+
+  .job__points li::marker { color: var(--dot); }
+
+  .edu {
+    position: sticky;
+    top: 6rem;
+    padding: 1.5rem;
+    background: var(--surf-lavender);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .edu__title {
+    font-size: 1.4rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .edu__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  .edu__item {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+  }
+
+  .edu__emoji {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    font-size: 1.1rem;
+  }
+
+  .edu__name { font-weight: 600; font-size: var(--fs-sm); line-height: 1.3; }
+  .edu__where { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: 0.15rem; }
+  .edu__when {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+    margin-top: 0.2rem;
+  }
+
+  @media (max-width: 900px) {
+    .experience__grid { grid-template-columns: 1fr; }
+    .edu { position: static; }
+  }
+
+  @media (max-width: 600px) {
+    .experience__head h2 { font-size: var(--fs-xl); }
+    .timeline { padding-left: 1.2rem; }
+    .job::before { left: calc(-1.2rem - 10px); }
+  }
+</style>

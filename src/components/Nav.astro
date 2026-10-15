@@ -1,0 +1,93 @@
+---
+---
+<nav class="nav" aria-label="Main">
+  <a href="#top" class="nav__logo" aria-label="Home">
+    <span class="nav__logo-mark" aria-hidden="true">DL</span>
+    <span class="nav__logo-text">Dimitris Liaropoulos</span>
+  </a>
+  <ul class="nav__links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.55rem 0.55rem 0.55rem 0.85rem;
+    background: rgba(255, 248, 238, 0.85);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-pill);
+    box-shadow: var(--shadow-sticker);
+    width: min(720px, calc(100% - 1.6rem));
+    max-width: 100%;
+  }
+
+  .nav__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .nav__logo-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: var(--paper);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 2px solid var(--ink);
+  }
+
+  .nav__logo-text {
+    font-size: var(--fs-sm);
+    letter-spacing: -0.01em;
+  }
+
+  .nav__links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    margin-left: auto;
+    padding-right: 0.4rem;
+  }
+
+  .nav__links a {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--ink-soft);
+    transition: color 0.2s ease;
+  }
+
+  .nav__links a:hover { color: var(--coral); }
+
+  @media (max-width: 680px) {
+    .nav__logo-text { display: none; }
+  }
+
+  @media (max-width: 560px) {
+    .nav { gap: 0.6rem; padding: 0.45rem 0.55rem 0.45rem 0.65rem; }
+    .nav__links { gap: 0.7rem; }
+    .nav__links a { font-size: var(--fs-xs); }
+  }
+</style>

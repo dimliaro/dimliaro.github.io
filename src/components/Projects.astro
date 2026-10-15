@@ -1,0 +1,301 @@
+---
+const projects = [
+  {
+    title: 'Premier League: Luck or Skill?',
+    blurb:
+      '12 seasons of Understat xG data (2014/15–2025/26) to separate team quality from luck. Quality persists year to year (r = 0.76); overperformance doesn’t (r = 0.11) — regression to the mean. Backtested at every matchweek, xPts beat the league table as a predictor, and the model now projects the live 2026/27 season.',
+    tags: ['Python', 'pandas', 'xG', 'Statistics', 'Backtesting'],
+    accent: 'lemon',
+    emoji: '⚽',
+    year: '2026 — now',
+    featured: true,
+  },
+  {
+    title: 'Corpus — RAG over EU law',
+    blurb:
+      'A retrieval-augmented pipeline that answers questions over EU regulatory documents (GDPR and more): document processing, vector search and an LLM answer layer. Built around the Accenture × Code.Hub bootcamp — I led the final presentation to senior leadership.',
+    tags: ['LangChain', 'ChromaDB', 'OpenAI', 'RAG'],
+    accent: 'lavender',
+    emoji: '⚖️',
+    year: '2026',
+  },
+  {
+    title: 'AI Job-Search Agent',
+    blurb:
+      'An agent that finds job postings, scores them against my profile and drafts a tailored CV for each role — LLM reasoning on top of structured data handling in Python.',
+    tags: ['Python', 'LLMs', 'Agents'],
+    accent: 'mint',
+    emoji: '🕵️',
+    year: '2026',
+    status: 'In progress',
+  },
+  {
+    title: 'Movie Analytics with SQL',
+    blurb:
+      'The TMDB dataset loaded into SQLite and interrogated with SQL — top-rated titles, hidden gems, revenue-to-budget ROI and box-office flops.',
+    tags: ['SQL', 'SQLite', 'Python', 'Jupyter'],
+    accent: 'coral',
+    emoji: '🎬',
+    year: '2026',
+  },
+  {
+    title: 'rippl — Pi micro-donations',
+    blurb:
+      'Full-stack donation platform for the Pi Network (Pi SDK): a React/Vite/Tailwind frontend on Vercel talking to a backend API on Railway.',
+    tags: ['React', 'Vite', 'Tailwind', 'Vercel', 'Railway'],
+    accent: 'sky',
+    emoji: '💧',
+    year: '2026',
+    link: 'https://pi-give.vercel.app/',
+  },
+  {
+    title: 'Fuel EDA — Hyundai i20',
+    blurb:
+      'A very personal dataset — 68 of my own fuel fill-ups, analysed across price, consumption, seasonality and habits. Concrete finding: Unleaded 98 costs ~€3.30 more per tank with no efficiency gain.',
+    tags: ['pandas', 'seaborn', 'matplotlib', 'Storytelling'],
+    accent: 'pink',
+    emoji: '⛽',
+    year: '2024',
+  },
+  {
+    title: 'Client Websites',
+    blurb:
+      'Websites and landing pages for restaurants, shops and personal brands — KoitaAth, OMparmpaNikos, Parasia and SelimBey.',
+    tags: ['HTML', 'CSS', 'JavaScript', 'Static sites'],
+    accent: 'coral',
+    emoji: '🌐',
+    year: '2024 — 2025',
+  },
+];
+---
+<section id="projects" class="projects">
+  <div class="container">
+    <header class="projects__head reveal">
+      <span class="eyebrow">Selected work</span>
+      <h2>
+        Things I've <span class="squiggle lemon">built</span><br/>
+        <span class="mark-coral">recently</span>.
+      </h2>
+      <p class="projects__sub">
+        Analyses, pipelines and small apps — most of them started with
+        "wait, can we actually measure that?"
+      </p>
+    </header>
+
+    <ol class="projects__grid">
+      {projects.map((p, i) => (
+        <li
+          class:list={['pcard', `pcard--${p.accent}`, { 'pcard--linked': p.link, 'pcard--featured': p.featured }, 'reveal']}
+          style={`--idx:${i}`}
+        >
+          <div class="pcard__top">
+            <span class="pcard__emoji" aria-hidden="true">{p.emoji}</span>
+            <span class="pcard__year">{p.year}</span>
+          </div>
+          <h3 class="pcard__title">{p.title}</h3>
+          <p class="pcard__blurb">{p.blurb}</p>
+          <ul class="pcard__tags">
+            {p.tags.map((t) => <li>{t}</li>)}
+          </ul>
+          {p.status && <span class="pcard__badge">{p.status}</span>}
+          {p.link && (
+            <>
+              <a class="pcard__link" href={p.link} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${p.title} (opens in new tab)`}></a>
+              <span class="pcard__badge pcard__badge--live" aria-hidden="true">
+                <span class="live-dot"></span>
+                Live
+                <span class="pcard__live-arrow">↗</span>
+              </span>
+            </>
+          )}
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .projects { background: linear-gradient(180deg, transparent 0%, var(--paper-2) 30%, var(--paper-2) 70%, transparent 100%); }
+
+  .projects__head {
+    max-width: 720px;
+    margin-bottom: 3rem;
+  }
+
+  .projects__head h2 {
+    font-size: var(--fs-2xl);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    margin-bottom: 1.1rem;
+  }
+
+  .projects__sub {
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 56ch;
+  }
+
+  .projects__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .pcard {
+    position: relative;
+    padding: 1.6rem 1.5rem 1.5rem;
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    box-shadow: 6px 6px 0 var(--ink);
+    transition: transform 0.3s var(--ease-bounce), box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    overflow: hidden;
+    min-height: 320px;
+  }
+
+  .pcard--featured { grid-column: span 2; }
+  .pcard--featured .pcard__blurb { font-size: var(--fs-base); max-width: 60ch; }
+  .pcard.pcard--featured::before { width: 32%; inset: -30% -6% auto auto; }
+
+  .pcard::before {
+    content: '';
+    position: absolute;
+    inset: -40% -10% auto auto;
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    z-index: 0;
+    opacity: 0.35;
+    transition: transform 0.6s var(--ease-smooth);
+  }
+
+  .pcard > * { position: relative; z-index: 1; }
+
+  .pcard:hover {
+    transform: translate(-3px, -5px) rotate(-0.3deg);
+    box-shadow: 10px 10px 0 var(--ink);
+  }
+  .pcard:hover::before { transform: scale(1.25); }
+
+  .pcard--coral::before    { background: var(--coral); }
+  .pcard--mint::before     { background: var(--mint); }
+  .pcard--lavender::before { background: var(--lavender); }
+  .pcard--lemon::before    { background: var(--lemon); }
+  .pcard--pink::before     { background: var(--pink); }
+  .pcard--sky::before      { background: var(--sky); }
+
+  .pcard__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pcard__emoji {
+    display: inline-grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    font-size: 1.6rem;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .pcard__year {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .pcard__title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .pcard__blurb {
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    line-height: 1.55;
+    flex-grow: 1;
+  }
+
+  .pcard__tags {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .pcard__tags li {
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--r-pill);
+    background: var(--paper-2);
+    border: 1.5px solid var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+
+  .pcard > .pcard__link {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    border-radius: var(--r-lg);
+  }
+
+  .pcard > .pcard__badge {
+    position: absolute;
+    bottom: 1rem;
+    right: 1.1rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--r-pill);
+    background: var(--paper-2);
+    border: 1.5px solid var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .pcard__badge .live-dot { width: 7px; height: 7px; }
+
+  /* keep tags clear of the corner badge */
+  .pcard:has(.pcard__badge) .pcard__tags { padding-right: 6.5rem; }
+
+  .pcard__live-arrow {
+    display: inline-block;
+    transition: transform 0.25s var(--ease-bounce);
+  }
+
+  .pcard--linked:hover .pcard__live-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  @media (max-width: 700px) {
+    .pcard--featured { grid-column: auto; }
+  }
+
+  @media (max-width: 600px) {
+    .projects__head h2 { font-size: var(--fs-xl); }
+    .pcard { min-height: 0; }
+  }
+</style>

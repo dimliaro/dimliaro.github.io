@@ -1,0 +1,233 @@
+---
+const email = 'dimliaro@hotmail.com';
+const year = new Date().getFullYear();
+
+const links = [
+  {
+    label: 'Email',
+    value: email,
+    href:  `mailto:${email}`,
+    color: 'coral',
+    icon: 'M3 7l9 6 9-6M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z',
+  },
+  {
+    label: 'GitHub',
+    value: '@dimliaro',
+    href:  'https://github.com/dimliaro',
+    color: 'mint',
+    icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22',
+  },
+  {
+    label: 'LinkedIn',
+    value: 'in/dimitris-liaropoulos',
+    href:  'https://www.linkedin.com/in/dimitris-liaropoulos-77b335158/',
+    color: 'lavender',
+    icon: 'M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z',
+  },
+];
+---
+<section id="contact" class="contact">
+  <span class="blob blob--pink"></span>
+  <span class="blob blob--sky"></span>
+
+  <div class="container contact__inner">
+    <div class="contact__head reveal">
+      <span class="eyebrow">Say hi</span>
+      <h2>
+        Got an <span class="mark-lemon">idea</span>,<br/>
+        a <span class="squiggle coral">dataset</span>,<br/>
+        or both?
+      </h2>
+      <p class="contact__lede">
+        I'm looking for a junior data role where I can contribute from
+        day one and keep growing — analyst, data or AI-tooling work.
+        Also happy to talk football data, side projects or anything
+        you're building. The fastest way to reach me is by email.
+      </p>
+    </div>
+
+    <ul class="contact__cards">
+      {links.map((l, i) => (
+        <li class="reveal" style={`--idx:${i}`}>
+          <a
+            class={`ccard ccard--${l.color}`}
+            href={l.href}
+            {...(l.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          >
+            <span class="ccard__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d={l.icon} />
+              </svg>
+            </span>
+            <span class="ccard__meta">
+              <span class="ccard__label">{l.label}</span>
+              <span class="ccard__value">{l.value}</span>
+            </span>
+            <span class="ccard__arrow" aria-hidden="true">↗</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="contact__cta reveal">
+      <a class="btn" href={`mailto:${email}`}>
+        Send me an email
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+      </a>
+      <a class="btn btn--ghost" href="/Dimitris_Liaropoulos_CV.pdf" target="_blank" rel="noopener">
+        Download CV
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 4v12M6 11l6 6 6-6M5 20h14"/>
+          </svg>
+      </a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span>© {year} Dimitris Liaropoulos</span>
+      <span>Crafted with care · Athens, Greece</span>
+    </div>
+  </footer>
+</section>
+
+<style>
+  .contact {
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  .contact__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 2.6rem;
+    align-items: flex-start;
+  }
+
+  .contact__head { max-width: 720px; }
+
+  .contact__cta { display: flex; flex-wrap: wrap; gap: 0.85rem; }
+
+  .contact__head h2 {
+    font-size: var(--fs-2xl);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    margin-bottom: 1.2rem;
+  }
+
+  .contact__lede {
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+    line-height: 1.7;
+    max-width: 56ch;
+  }
+
+  .contact__cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .ccard {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    padding: 1rem 1.1rem;
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    box-shadow: 5px 5px 0 var(--ink);
+    transition: transform 0.25s var(--ease-bounce), box-shadow 0.25s ease;
+  }
+
+  .ccard:hover {
+    transform: translate(-2px, -3px);
+    box-shadow: 8px 8px 0 var(--ink);
+  }
+
+  .ccard__icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 2px solid var(--ink);
+    flex-shrink: 0;
+  }
+
+  .ccard--coral .ccard__icon    { background: var(--surf-coral); }
+  .ccard--mint .ccard__icon     { background: var(--surf-mint); }
+  .ccard--lavender .ccard__icon { background: var(--surf-lavender); }
+
+  .ccard__meta { display: flex; flex-direction: column; flex-grow: 1; }
+
+  .ccard__label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .ccard__value {
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .ccard__arrow {
+    font-size: 1.2rem;
+    color: var(--ink-muted);
+    transition: transform 0.25s var(--ease-bounce), color 0.25s ease;
+  }
+
+  .ccard:hover .ccard__arrow {
+    transform: translate(3px, -3px);
+    color: var(--coral);
+  }
+
+  .blob--pink {
+    background: var(--pink);
+    width: 380px;
+    height: 380px;
+    top: 5%;
+    right: -120px;
+    animation-delay: -4s;
+  }
+  .blob--sky {
+    background: var(--sky);
+    width: 320px;
+    height: 320px;
+    bottom: 10%;
+    left: -120px;
+    animation-delay: -10s;
+  }
+
+  .footer {
+    border-top: 1.5px dashed var(--ink-muted);
+    padding: 1.8rem 0;
+    margin-top: var(--sp-16);
+  }
+
+  .footer__inner {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 600px) {
+    .contact__head h2 { font-size: var(--fs-xl); }
+    .blob--pink, .blob--sky { width: 240px; height: 240px; }
+  }
+</style>
