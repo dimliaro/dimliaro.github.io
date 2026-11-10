@@ -17,8 +17,8 @@ import { cases, otherWork } from '../data/content';
         <li class="case reveal">
           {/* visual and write-up turn separately, so each card reassembles in two moves */}
           <Dual variant="flip-y" i={i * 2} class="case__visual-wrap">
-            <CaseVisual slot="data" index={i} label={cases.data[i].visual} />
-            <CaseVisual slot="it" index={i} label={cases.it[i].visual} />
+            <CaseVisual slot="data" index={i} label={cases.data[i].visual} images={cases.data[i].images} />
+            <CaseVisual slot="it" index={i} label={cases.it[i].visual} images={cases.it[i].images} />
           </Dual>
           <Dual variant="fade" i={i * 2 + 1}>
             <CaseBody slot="data" c={cases.data[i]} />

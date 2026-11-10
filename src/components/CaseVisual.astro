@@ -1,13 +1,73 @@
 ---
-interface Props { index: number; label: string }
-const { index, label } = Astro.props;
+import { Image } from 'astro:assets';
+import type { Shot } from '../data/content';
+
+interface Props { index: number; label: string; images?: Shot[] }
+const { index, label, images = [] } = Astro.props;
+const num = String(index + 1).padStart(2, '0');
 ---
-<div class="case__visual" role="img" aria-label={`Placeholder: ${label}`}>
-  <span class="case__corner case__corner--tl"></span>
-  <span class="case__corner case__corner--br"></span>
-  <span class="case__visual-index">{String(index + 1).padStart(2, '0')}</span>
-  <span class="case__visual-label">{label}</span>
-</div>
+{images.length === 0 ? (
+  <div class="case__visual" role="img" aria-label={`Placeholder: ${label}`}>
+    <span class="case__corner case__corner--tl"></span>
+    <span class="case__corner case__corner--br"></span>
+    <span class="case__visual-index">{num}</span>
+    <span class="case__visual-label">{label}</span>
+  </div>
+) : (
+  <figure class="case__visual case__visual--shots" data-gallery>
+    <span class="case__visual-index">{num}</span>
+
+    {images.length > 1 && (
+      <div class="shots__tabs" role="group" aria-label="Images">
+        {images.map((img, i) => (
+          <button type="button" class:list={['shots__tab', { 'is-active': i === 0 }]} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={img.caption} data-shot={i}>
+            {String(i + 1).padStart(2, '0')}
+          </button>
+        ))}
+      </div>
+    )}
+
+    <div class="shots__stage">
+      {images.map((img, i) => (
+        <a
+          class:list={['shots__item', { 'is-active': i === 0, 'shots__item--invert': img.invert }]}
+          href={img.src.src}
+          target="_blank"
+          rel="noopener"
+          data-shot-panel={i}
+          aria-label={`Open full size: ${img.caption} (new tab)`}
+        >
+          <Image src={img.src} alt={img.alt} widths={[640, 960, 1400]} sizes="(max-width: 900px) 100vw, 620px" loading="lazy" />
+        </a>
+      ))}
+    </div>
+
+    <figcaption class="shots__caption">
+      {images.map((img, i) => (
+        <span class:list={['shots__caption-text', { 'is-active': i === 0 }]} data-shot-caption={i}>{img.caption}</span>
+      ))}
+    </figcaption>
+  </figure>
+)}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((gallery) => {
+    const tabs = gallery.querySelectorAll<HTMLButtonElement>('[data-shot]');
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const idx = tab.dataset.shot;
+        tabs.forEach((t) => {
+          const on = t === tab;
+          t.classList.toggle('is-active', on);
+          t.setAttribute('aria-pressed', String(on));
+        });
+        gallery.querySelectorAll<HTMLElement>('[data-shot-panel], [data-shot-caption]').forEach((el) => {
+          el.classList.toggle('is-active', (el.dataset.shotPanel ?? el.dataset.shotCaption) === idx);
+        });
+      });
+    });
+  });
+</script>
 
 <style>
   /* ---------- visual placeholder ---------- */
@@ -57,5 +117,83 @@ const { index, label } = Astro.props;
   }
   .case__corner--tl { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
   .case__corner--br { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
+
+  /* ---------- real images ---------- */
+  .case__visual--shots { margin: 0; display: block; }
+
+  .shots__tabs {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.9rem;
+    z-index: 2;
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .shots__tab {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    background: none;
+    font: 500 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.25s ease, border-color 0.25s ease;
+  }
+  .shots__tab:hover { color: var(--text); }
+  .shots__tab.is-active { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+
+  .shots__stage {
+    position: absolute;
+    inset: 2.8rem 1.2rem 2.6rem;
+  }
+
+  .shots__item {
+    position: absolute;
+    inset: 0;
+    /* flex (not grid) so the image's max-height resolves against this box */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.985);
+    transition: opacity 0.5s var(--ease-out), transform 0.6s var(--ease-out), visibility 0s linear 0.5s;
+    cursor: zoom-in;
+  }
+  .shots__item.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  .shots__item img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--r-sm);
+  }
+
+  /* white matplotlib charts → dark: invert, rotate hues back, and let black melt into the panel */
+  .shots__item--invert img {
+    border-radius: 0;
+    filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.95);
+    mix-blend-mode: screen;
+  }
+
+  .shots__caption {
+    position: absolute;
+    left: 1.3rem;
+    right: 1.3rem;
+    bottom: 0.9rem;
+    font: 400 var(--fs-xs)/1.3 var(--font-mono);
+    color: var(--text-muted);
+  }
+  .shots__caption-text { display: none; }
+  .shots__caption-text.is-active { display: block; }
 
 </style>

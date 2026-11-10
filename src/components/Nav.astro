@@ -10,6 +10,7 @@ const { mode } = Astro.props;
     <li><a href="#about">About</a></li>
     <li><a href="#experience">Experience</a></li>
     <li><a href="#work">Work</a></li>
+    <li><a href="#play">Play</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
 
@@ -130,6 +131,7 @@ const { mode } = Astro.props;
   }
 
   @media (max-width: 420px) {
-    .nav__links li:first-child { display: none; }
+    .nav__links li:first-child,
+    .nav__links li:nth-child(4) { display: none; }
   }
 </style>

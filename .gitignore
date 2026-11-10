@@ -4,3 +4,8 @@ dist/
 .env
 .env.local
 .DS_Store
+
+# original photos (contain GPS metadata / unblurred internal details) — processed copies live in src/assets/work
+photos_for_my_pc/
+gameboy_photos/
+it app for army/

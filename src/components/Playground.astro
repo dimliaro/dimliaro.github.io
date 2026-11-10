@@ -1,0 +1,38 @@
+---
+import Dual from './Dual.astro';
+import Scramble from './Scramble.astro';
+import FitGame from './games/FitGame.astro';
+import FaultGame from './games/FaultGame.astro';
+import type { Mode } from '../data/content';
+interface Props { mode: Mode }
+const { mode } = Astro.props;
+---
+<section id="play" class="play">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="eyebrow">Playground</span>
+      <div>
+        <h2 class="play__title">
+          <Scramble mode={mode} data="Eyeball the line of best fit." it="Find the blown fuse." />
+        </h2>
+        <p class="play__sub">
+          A two-minute break. Flip the switch up top for the other game.
+        </p>
+      </div>
+    </header>
+
+    <Dual variant="flip-y" class="play__board reveal">
+      <FitGame slot="data" />
+      <FaultGame slot="it" />
+    </Dual>
+  </div>
+</section>
+
+<style>
+  .play__title { font-family: var(--font-hand); font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 600; letter-spacing: 0; line-height: 1.05; }
+  /* align with the heading column, like the other sections */
+  .play__board { margin-left: calc(200px + 2rem); }
+  @media (max-width: 760px) { .play__board { margin-left: 0; } }
+
+  .play__sub { margin-top: 0.9rem; color: var(--text-soft); max-width: 52ch; }
+</style>

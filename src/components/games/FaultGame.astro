@@ -1,0 +1,298 @@
+---
+/**
+ * "Find the blown fuse" — a series circuit with one dead part.
+ * Probing a test point reads 3.3V upstream of the fault and 0V downstream,
+ * so the optimal strategy is a binary search. Par = ceil(log2(parts)).
+ */
+---
+<div class="game fault" data-fault-game>
+  <header class="game__bar">
+    <span class="game__title">find the blown fuse</span>
+    <span class="game__stats">
+      <span>board <b data-fault-level>1</b>/3</span>
+      <span>probes <b data-fault-probes>0</b> · par <b data-fault-par>3</b></span>
+    </span>
+  </header>
+
+  <svg class="game__board" viewBox="0 0 640 360" aria-label="Circuit board. Probe test points to find the dead part, then replace it." data-fault-svg>
+    <defs>
+      <filter id="wobble-fault">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="11" />
+        <feDisplacementMap in="SourceGraphic" scale="3" />
+      </filter>
+      <radialGradient id="led-glow">
+        <stop offset="0" stop-color="var(--accent)" stop-opacity="0.9" />
+        <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+    <g data-fault-board></g>
+  </svg>
+
+  <footer class="game__foot">
+    <p class="game__msg hand" data-fault-msg aria-live="polite"></p>
+    <button type="button" class="game__btn" data-fault-action hidden>Next board</button>
+  </footer>
+</div>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const LEVELS = [8, 16, 24];
+  const ROW_GAP = 105;
+  const BEST_KEY = 'play.fault.best';
+
+  type Kind = 'fuse' | 'res' | 'cap' | 'chip';
+  const KINDS: Kind[] = ['fuse', 'res', 'cap', 'chip'];
+  const PREFIX: Record<Kind, string> = { fuse: 'F', res: 'R', cap: 'C', chip: 'U' };
+
+  function el<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number> = {}, parent?: Element) {
+    const node = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
+    parent?.appendChild(node);
+    return node;
+  }
+
+  /** Doodle glyph for a part, centred on (0,0), roughly 40×24. */
+  function drawPart(kind: Kind, g: SVGGElement) {
+    if (kind === 'fuse') {
+      el('rect', { x: -18, y: -9, width: 36, height: 18, rx: 4 }, g);
+      el('path', { d: 'M-18 0 Q -9 -6 0 0 T 18 0' }, g);
+    } else if (kind === 'res') {
+      el('path', { d: 'M-20 0 L-14 0 L-11 -8 L-5 8 L1 -8 L7 8 L11 -6 L14 0 L20 0' }, g);
+    } else if (kind === 'cap') {
+      el('path', { d: 'M-20 0 L-4 0 M-4 -11 L-4 11 M4 -11 L4 11 M4 0 L20 0' }, g);
+    } else {
+      el('rect', { x: -14, y: -11, width: 28, height: 22, rx: 2 }, g);
+      el('path', { d: 'M-8 -11 L-8 -16 M0 -11 L0 -16 M8 -11 L8 -16 M-8 11 L-8 16 M0 11 L0 16 M8 11 L8 16' }, g);
+      el('circle', { cx: -8, cy: -5, r: 1.6 }, g);
+    }
+  }
+
+  function readBest(): Record<string, number> {
+    try { return JSON.parse(localStorage.getItem(BEST_KEY) ?? '{}'); } catch { return {}; }
+  }
+  function writeBest(v: Record<string, number>) {
+    try { localStorage.setItem(BEST_KEY, JSON.stringify(v)); } catch { /* storage unavailable */ }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fault-game]').forEach((root) => {
+    const board = root.querySelector<SVGGElement>('[data-fault-board]')!;
+    const msg = root.querySelector<HTMLElement>('[data-fault-msg]')!;
+    const btn = root.querySelector<HTMLButtonElement>('[data-fault-action]')!;
+    const levelEl = root.querySelector<HTMLElement>('[data-fault-level]')!;
+    const probesEl = root.querySelector<HTMLElement>('[data-fault-probes]')!;
+    const parEl = root.querySelector<HTMLElement>('[data-fault-par]')!;
+
+    let level = 0;
+    let n = 0;
+    let fault = 0;
+    let probes = 0;
+    let solved = false;
+    let led: SVGGElement;
+    // narrow screens get 4 parts per row (taller board, bigger tap targets)
+    let PER_ROW = 8;
+    let boardH = 360;
+    const svg = root.querySelector<SVGSVGElement>('[data-fault-svg]')!;
+    const pickPerRow = () => (svg.getBoundingClientRect().width < 520 ? 4 : 8);
+
+    const rows = () => Math.ceil(n / PER_ROW);
+    const rowY = (r: number) => (boardH - (rows() - 1) * ROW_GAP) / 2 + r * ROW_GAP;
+    const colX = (c: number) => 110 + c * 60;
+
+    /** Position of part k: serpentine rows, left→right then right→left. */
+    function partPos(k: number) {
+      const r = Math.floor(k / PER_ROW);
+      const c = k % PER_ROW;
+      return { x: colX(r % 2 === 0 ? c : PER_ROW - 1 - c), y: rowY(r), r };
+    }
+
+    /** Test point between part i-1 and part i (1 ≤ i ≤ n-1). */
+    function nodePos(i: number) {
+      const a = partPos(i - 1), b = partPos(i);
+      if (a.r === b.r) return { x: (a.x + b.x) / 2, y: a.y };
+      const edge = a.r % 2 === 0 ? colX(PER_ROW - 1) + 34 : colX(0) - 34;
+      return { x: edge, y: (a.y + b.y) / 2 };
+    }
+
+    function setProbes(v: number) {
+      probes = v;
+      probesEl.textContent = String(v);
+    }
+
+    function build() {
+      n = LEVELS[level];
+      PER_ROW = pickPerRow();
+      boardH = Math.max(360, (rows() - 1) * ROW_GAP + 170);
+      svg.setAttribute('viewBox', `0 0 ${220 + (PER_ROW - 1) * 60} ${boardH}`);
+      fault = Math.floor(Math.random() * n);
+      solved = false;
+      setProbes(0);
+      const par = Math.ceil(Math.log2(n));
+      parEl.textContent = String(par);
+      levelEl.textContent = String(level + 1);
+      btn.hidden = true;
+      msg.textContent = 'One part is dead. Click test points to probe: 3.3V means power got that far, 0V means it didn’t. Then click the part to replace it.';
+      board.replaceChildren();
+
+      // ---- wire path ----
+      const first = partPos(0);
+      const last = partPos(n - 1);
+      const startX = colX(0) - 62;
+      const lastRowEven = last.r % 2 === 0;
+      const endX = lastRowEven ? colX(PER_ROW - 1) + 62 : colX(0) - 62;
+      let d = `M ${startX} ${first.y} L ${first.x} ${first.y}`;
+      for (let k = 1; k < n; k++) {
+        const a = partPos(k - 1), b = partPos(k);
+        if (a.r === b.r) d += ` L ${b.x} ${b.y}`;
+        else {
+          const edge = nodePos(k).x;
+          d += ` L ${edge} ${a.y} L ${edge} ${b.y} L ${b.x} ${b.y}`;
+        }
+      }
+      d += ` L ${endX} ${last.y}`;
+
+      const chalk = el('g', { class: 'chalk', filter: 'url(#wobble-fault)' }, board);
+      el('path', { d, class: 'fault__wire' }, chalk);
+
+      // battery
+      const bat = el('g', { transform: `translate(${startX - 6} ${first.y})` }, chalk);
+      el('path', { d: 'M0 -16 L0 16 M-9 -9 L-9 9' }, bat);
+      const batLabel = el('text', { x: startX - 12, y: first.y - 26, class: 'hand fault__label', 'text-anchor': 'middle' }, board);
+      batLabel.textContent = '+3.3V';
+
+      // LED
+      led = el('g', { class: 'fault__led', transform: `translate(${endX + (lastRowEven ? 10 : -10)} ${last.y})` }, board);
+      el('circle', { r: 30, fill: 'url(#led-glow)', class: 'fault__led-glow' }, led);
+      const ledShape = el('g', { class: 'chalk', filter: 'url(#wobble-fault)' }, led);
+      el('circle', { r: 11, class: 'fault__led-body' }, ledShape);
+      el('path', { d: 'M-4 -4 L4 4 M4 -4 L-4 4', class: 'fault__led-x' }, ledShape);
+      const ledLabel = el('text', { y: -22, class: 'hand fault__label', 'text-anchor': 'middle' }, led);
+      ledLabel.textContent = 'LED';
+
+      // parts
+      const counters: Record<Kind, number> = { fuse: 0, res: 0, cap: 0, chip: 0 };
+      for (let k = 0; k < n; k++) {
+        const p = partPos(k);
+        const kind = KINDS[Math.floor(Math.random() * KINDS.length)];
+        const name = `${PREFIX[kind]}${++counters[kind]}`;
+        const g = el('g', {
+          class: 'fault__part',
+          transform: `translate(${p.x} ${p.y})`,
+          tabindex: 0,
+          role: 'button',
+          'aria-label': `Replace part ${name}`,
+        }, board);
+        el('rect', { x: -24, y: -22, width: 48, height: 44, rx: 8, class: 'fault__hit' }, g);
+        const glyph = el('g', { class: 'chalk', filter: 'url(#wobble-fault)' }, g);
+        drawPart(kind, glyph);
+        const t = el('text', { y: 36, class: 'hand fault__name', 'text-anchor': 'middle' }, g);
+        t.textContent = name;
+        const act = () => replace(k, g, name);
+        g.addEventListener('click', act);
+        g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+      }
+
+      // test points
+      for (let i = 1; i < n; i++) {
+        const p = nodePos(i);
+        const g = el('g', {
+          class: 'fault__node',
+          transform: `translate(${p.x} ${p.y})`,
+          tabindex: 0,
+          role: 'button',
+          'aria-label': `Probe test point ${i}`,
+        }, board);
+        el('circle', { r: 14, class: 'fault__hit' }, g);
+        el('circle', { r: 5, class: 'fault__dot' }, g);
+        const act = () => probe(i, g);
+        g.addEventListener('click', act);
+        g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+      }
+    }
+
+    function probe(i: number, g: SVGGElement) {
+      if (solved || g.classList.contains('is-probed')) return;
+      const live = i <= fault; // node i sits after part i-1
+      g.classList.add('is-probed', live ? 'is-live' : 'is-dead');
+      const t = el('text', { y: -14, class: 'hand fault__reading', 'text-anchor': 'middle' }, g);
+      t.textContent = live ? '3.3V' : '0V';
+      g.setAttribute('aria-label', `Test point ${i}: ${live ? '3.3 volts' : '0 volts'}`);
+      setProbes(probes + 1);
+    }
+
+    function replace(k: number, g: SVGGElement, name: string) {
+      if (solved || g.classList.contains('is-wrong')) return;
+      if (k !== fault) {
+        g.classList.add('is-wrong');
+        setProbes(probes + 2);
+        msg.textContent = `Swapped ${name} — LED still dark. That cost you 2 probes.`;
+        return;
+      }
+      solved = true;
+      g.classList.add('is-fixed');
+      led.classList.add('is-on');
+      const par = Math.ceil(Math.log2(n));
+      const verdict = probes <= par ? 'textbook binary search.' : probes <= par + 2 ? 'solid diagnosis.' : 'fixed — but a multimeter can halve the board each time.';
+      msg.textContent = `${name} was blown. Fixed in ${probes} probe${probes === 1 ? '' : 's'} (par ${par}) — ${verdict}`;
+
+      const best = readBest();
+      const key = String(n);
+      if (best[key] === undefined || probes < best[key]) { best[key] = probes; writeBest(best); msg.textContent += '  New best for this board.'; }
+
+      btn.textContent = level < LEVELS.length - 1 ? 'Next board' : 'Start over';
+      btn.hidden = false;
+      btn.focus({ preventScroll: true });
+    }
+
+    btn.addEventListener('click', () => {
+      level = level < LEVELS.length - 1 ? level + 1 : 0;
+      build();
+    });
+
+    build();
+
+    // re-lay the board if a resize crosses the 4/8-per-row breakpoint
+    // (the svg measures 0 while its face is hidden, so ignore that case)
+    new ResizeObserver(() => {
+      const w = svg.getBoundingClientRect().width;
+      if (w > 0 && pickPerRow() !== PER_ROW && !solved && probes === 0) build();
+    }).observe(svg);
+  });
+</script>
+
+<style>
+  .fault :global(.fault__wire) { stroke-width: 2; opacity: 0.75; }
+
+  .fault :global(.fault__part),
+  .fault :global(.fault__node) { cursor: pointer; outline: none; }
+
+  .fault :global(.fault__hit) { fill: transparent; stroke: none; }
+  .fault :global(.fault__part:hover .fault__hit),
+  .fault :global(.fault__part:focus-visible .fault__hit),
+  .fault :global(.fault__node:hover .fault__hit),
+  .fault :global(.fault__node:focus-visible .fault__hit) {
+    fill: color-mix(in srgb, var(--accent) 10%, transparent);
+    stroke: color-mix(in srgb, var(--accent) 50%, transparent);
+    stroke-dasharray: 3 4;
+  }
+
+  .fault :global(.fault__part .chalk) { fill: var(--bg); }
+  .fault :global(.fault__part.is-wrong) { opacity: 0.35; cursor: default; }
+  .fault :global(.fault__part.is-fixed .chalk) { stroke: var(--accent); }
+
+  .fault :global(.fault__dot) { fill: var(--bg); stroke: var(--chalk); stroke-width: 2; }
+  .fault :global(.fault__node.is-live .fault__dot) { fill: var(--accent); stroke: var(--accent); }
+  .fault :global(.fault__node.is-dead .fault__dot) { fill: var(--bg); stroke: var(--text-muted); }
+  .fault :global(.fault__node.is-probed) { cursor: default; }
+
+  .fault :global(.fault__reading) { font-size: 17px; fill: var(--accent); }
+  .fault :global(.fault__node.is-dead .fault__reading) { fill: var(--text-muted); }
+
+  .fault :global(.fault__label),
+  .fault :global(.fault__name) { font-size: 15px; fill: var(--chalk-dim); }
+
+  .fault :global(.fault__led-glow) { opacity: 0; transition: opacity 0.6s ease; }
+  .fault :global(.fault__led-body) { fill: var(--bg); }
+  .fault :global(.fault__led.is-on .fault__led-glow) { opacity: 1; }
+  .fault :global(.fault__led.is-on .fault__led-body) { fill: var(--accent); stroke: var(--accent); }
+  .fault :global(.fault__led.is-on .fault__led-x) { display: none; }
+</style>

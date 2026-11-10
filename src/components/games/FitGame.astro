@@ -1,0 +1,288 @@
+---
+/**
+ * "Eyeball the fit" — drag a line through a scatter plot, then compare it to
+ * the least-squares line. Score = SSE(best) / SSE(yours) × 100.
+ */
+---
+<div class="game fit" data-fit-game>
+  <header class="game__bar">
+    <span class="game__title">eyeball the fit</span>
+    <span class="game__stats">
+      <span>round <b data-fit-round>1</b>/5</span>
+      <span>best <b data-fit-best>—</b></span>
+    </span>
+  </header>
+
+  <svg class="game__board" viewBox="0 0 600 360" role="application" aria-label="Scatter plot. Drag the two handles, or focus one and use the arrow keys, to fit a line through the points." data-fit-svg>
+    <defs>
+      <filter id="wobble-fit">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" />
+        <feDisplacementMap in="SourceGraphic" scale="3.2" />
+      </filter>
+    </defs>
+    <g class="chalk" filter="url(#wobble-fit)">
+      <path d="M50 20 L50 310 L580 310" class="chalk__axis" />
+      <path d="M44 28 L50 18 L56 28 M570 304 L582 310 L570 316" class="chalk__axis" />
+    </g>
+    <text x="315" y="345" class="hand hand--axis" text-anchor="middle" data-fit-xlabel>x</text>
+    <text x="22" y="165" class="hand hand--axis" text-anchor="middle" transform="rotate(-90 22 165)" data-fit-ylabel>y</text>
+    <g data-fit-residuals></g>
+    <g data-fit-points filter="url(#wobble-fit)"></g>
+    <line class="fit__best" data-fit-best-line x1="0" y1="0" x2="0" y2="0" />
+    <line class="fit__line" data-fit-line x1="0" y1="0" x2="0" y2="0" />
+    <circle class="fit__handle" r="11" tabindex="0" role="slider" aria-label="Left end of your line" aria-valuemin="0" aria-valuemax="100" data-fit-handle="0" />
+    <circle class="fit__handle" r="11" tabindex="0" role="slider" aria-label="Right end of your line" aria-valuemin="0" aria-valuemax="100" data-fit-handle="1" />
+  </svg>
+
+  <footer class="game__foot">
+    <p class="game__msg hand" data-fit-msg aria-live="polite">Drag the two handles until the line fits the cloud.</p>
+    <button type="button" class="game__btn" data-fit-action>Check fit</button>
+  </footer>
+</div>
+
+<script>
+  type Pt = { x: number; y: number };
+
+  const LABELS: [string, string][] = [
+    ['coffee cups', 'bugs shipped'],
+    ['xG', 'points'],
+    ['fuel price', 'km per tank'],
+    ['hours slept', 'typos per email'],
+    ['tabs open', 'RAM used'],
+    ['meetings', 'actual work done'],
+    ['futsal goals', 'post-match pizza'],
+  ];
+
+  // plot area in SVG units
+  const X0 = 50, X1 = 580, Y0 = 310, Y1 = 20;
+  const HX = [0.06, 0.94]; // handle x positions (normalised)
+  const ROUNDS = 5;
+  const BEST_KEY = 'play.fit.best';
+
+  const sx = (x: number) => X0 + x * (X1 - X0);
+  const sy = (y: number) => Y0 - y * (Y0 - Y1);
+  const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function gaussian() {
+    let u = 0, v = 0;
+    while (!u) u = Math.random();
+    while (!v) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function ols(pts: Pt[]) {
+    const n = pts.length;
+    const mx = pts.reduce((s, p) => s + p.x, 0) / n;
+    const my = pts.reduce((s, p) => s + p.y, 0) / n;
+    let sxy = 0, sxx = 0, syy = 0;
+    for (const p of pts) { sxy += (p.x - mx) * (p.y - my); sxx += (p.x - mx) ** 2; syy += (p.y - my) ** 2; }
+    const m = sxy / sxx;
+    return { m, b: my - m * mx, r: sxy / Math.sqrt(sxx * syy) };
+  }
+
+  const sse = (pts: Pt[], m: number, b: number) => pts.reduce((s, p) => s + (p.y - (m * p.x + b)) ** 2, 0);
+
+  function readBest(): number | null {
+    try { const v = localStorage.getItem(BEST_KEY); return v ? Number(v) : null; } catch { return null; }
+  }
+  function writeBest(v: number) {
+    try { localStorage.setItem(BEST_KEY, String(v)); } catch { /* storage unavailable */ }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fit-game]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-fit-svg]')!;
+    const pointsG = root.querySelector<SVGGElement>('[data-fit-points]')!;
+    const residG = root.querySelector<SVGGElement>('[data-fit-residuals]')!;
+    const line = root.querySelector<SVGLineElement>('[data-fit-line]')!;
+    const bestLine = root.querySelector<SVGLineElement>('[data-fit-best-line]')!;
+    const handles = [...root.querySelectorAll<SVGCircleElement>('[data-fit-handle]')];
+    const msg = root.querySelector<HTMLElement>('[data-fit-msg]')!;
+    const btn = root.querySelector<HTMLButtonElement>('[data-fit-action]')!;
+    const roundEl = root.querySelector<HTMLElement>('[data-fit-round]')!;
+    const bestEl = root.querySelector<HTMLElement>('[data-fit-best]')!;
+    const xLabel = root.querySelector<SVGTextElement>('[data-fit-xlabel]')!;
+    const yLabel = root.querySelector<SVGTextElement>('[data-fit-ylabel]')!;
+
+    let pts: Pt[] = [];
+    let hy = [0.5, 0.5];           // handle y values (normalised)
+    let round = 1;
+    let scores: number[] = [];
+    let state: 'fitting' | 'revealed' | 'done' = 'fitting';
+    let best = readBest();
+    bestEl.textContent = best === null ? '—' : String(best);
+
+    function userLine() {
+      const m = (hy[1] - hy[0]) / (HX[1] - HX[0]);
+      return { m, b: hy[0] - m * HX[0] };
+    }
+
+    function drawUserLine() {
+      const { m, b } = userLine();
+      line.setAttribute('x1', String(sx(0)));
+      line.setAttribute('y1', String(sy(b)));
+      line.setAttribute('x2', String(sx(1)));
+      line.setAttribute('y2', String(sy(m + b)));
+      handles.forEach((h, i) => {
+        h.setAttribute('cx', String(sx(HX[i])));
+        h.setAttribute('cy', String(sy(hy[i])));
+        h.setAttribute('aria-valuenow', String(Math.round(hy[i] * 100)));
+      });
+    }
+
+    function newRound() {
+      const slope = (Math.random() * 1.4 - 0.7);
+      const icpt = 0.5 - slope / 2 + (Math.random() - 0.5) * 0.2;
+      const noise = 0.06 + Math.random() * 0.08;
+      const n = 22 + Math.floor(Math.random() * 10);
+      pts = Array.from({ length: n }, () => {
+        const x = 0.05 + Math.random() * 0.9;
+        return { x, y: clamp(icpt + slope * x + gaussian() * noise, 0.03, 0.97) };
+      });
+      // the occasional outlier keeps it honest
+      if (Math.random() < 0.5) pts.push({ x: 0.1 + Math.random() * 0.8, y: Math.random() < 0.5 ? 0.95 : 0.05 });
+
+      const [xl, yl] = LABELS[Math.floor(Math.random() * LABELS.length)];
+      xLabel.textContent = xl;
+      yLabel.textContent = yl;
+
+      pointsG.replaceChildren(...pts.map((p) => {
+        const c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', String(sx(p.x)));
+        c.setAttribute('cy', String(sy(p.y)));
+        c.setAttribute('r', '4.5');
+        c.setAttribute('class', 'fit__pt');
+        return c;
+      }));
+      residG.replaceChildren();
+      hy = [0.5, 0.5];
+      root.classList.remove('is-revealed');
+      state = 'fitting';
+      roundEl.textContent = String(round);
+      msg.textContent = 'Drag the two handles until the line fits the cloud.';
+      btn.textContent = 'Check fit';
+      drawUserLine();
+    }
+
+    function reveal() {
+      const fit = ols(pts);
+      const { m, b } = userLine();
+      const score = Math.round(100 * clamp(sse(pts, fit.m, fit.b) / sse(pts, m, b)));
+      scores.push(score);
+
+      bestLine.setAttribute('x1', String(sx(0)));
+      bestLine.setAttribute('y1', String(sy(fit.b)));
+      bestLine.setAttribute('x2', String(sx(1)));
+      bestLine.setAttribute('y2', String(sy(fit.m + fit.b)));
+
+      residG.replaceChildren(...pts.map((p) => {
+        const l = document.createElementNS(NS, 'line');
+        l.setAttribute('x1', String(sx(p.x)));
+        l.setAttribute('x2', String(sx(p.x)));
+        l.setAttribute('y1', String(sy(p.y)));
+        l.setAttribute('y2', String(sy(m * p.x + b)));
+        l.setAttribute('class', 'fit__resid');
+        return l;
+      }));
+      root.classList.add('is-revealed');
+
+      const verdict = score >= 95 ? 'basically a regression model.' : score >= 85 ? 'sharp eye.' : score >= 65 ? 'not bad — the outlier pulls harder than it looks.' : 'the points disagree with you.';
+      msg.textContent = `${score}/100 — ${verdict} (r = ${fit.r.toFixed(2)})`;
+
+      if (round >= ROUNDS) {
+        const total = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length);
+        if (best === null || total > best) { best = total; writeBest(total); bestEl.textContent = String(total); }
+        msg.textContent += `  ·  final average: ${total}`;
+        btn.textContent = 'Play again';
+        state = 'done';
+      } else {
+        btn.textContent = 'Next round';
+        state = 'revealed';
+      }
+    }
+
+    btn.addEventListener('click', () => {
+      if (state === 'fitting') reveal();
+      else if (state === 'revealed') { round++; newRound(); }
+      else { round = 1; scores = []; newRound(); }
+    });
+
+    // ---- dragging ----
+    const toNorm = (e: PointerEvent) => {
+      const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse());
+      return clamp((Y0 - p.y) / (Y0 - Y1));
+    };
+
+    handles.forEach((h, i) => {
+      h.addEventListener('pointerdown', (e) => {
+        if (state !== 'fitting') return;
+        h.setPointerCapture(e.pointerId);
+        h.classList.add('is-dragging');
+      });
+      h.addEventListener('pointermove', (e) => {
+        if (!h.hasPointerCapture(e.pointerId)) return;
+        hy[i] = toNorm(e);
+        drawUserLine();
+      });
+      const end = (e: PointerEvent) => { if (h.hasPointerCapture(e.pointerId)) h.releasePointerCapture(e.pointerId); h.classList.remove('is-dragging'); };
+      h.addEventListener('pointerup', end);
+      h.addEventListener('pointercancel', end);
+      h.addEventListener('keydown', (e) => {
+        if (state !== 'fitting') return;
+        const step = e.shiftKey ? 0.08 : 0.02;
+        if (e.key === 'ArrowUp' || e.key === 'ArrowRight') hy[i] = clamp(hy[i] + step);
+        else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') hy[i] = clamp(hy[i] - step);
+        else return;
+        e.preventDefault();
+        drawUserLine();
+      });
+    });
+
+    newRound();
+  });
+</script>
+
+<style>
+  /* points and residuals are created in JS, so they need :global to escape style scoping */
+  .fit :global(.fit__pt) { fill: var(--chalk); opacity: 0.9; }
+
+  .fit__line {
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .fit__best {
+    stroke: var(--chalk);
+    stroke-width: 2;
+    stroke-dasharray: 8 7;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  :global(.is-revealed) .fit__best { opacity: 0.85; }
+
+  .fit :global(.fit__resid) {
+    stroke: var(--accent);
+    stroke-width: 1;
+    opacity: 0.45;
+  }
+
+  .fit__handle {
+    fill: var(--bg);
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    cursor: grab;
+    touch-action: none;
+    transition: r 0.2s var(--ease-out);
+  }
+  .fit__handle:hover, .fit__handle:focus-visible, .fit__handle.is-dragging { r: 14; }
+  .fit__handle.is-dragging { cursor: grabbing; }
+  .fit__handle:focus-visible { outline: none; stroke-width: 4; }
+
+  /* bigger touch targets once the board is scaled down */
+  @media (max-width: 640px) {
+    .fit__handle { r: 18; }
+    .fit__handle:hover, .fit__handle:focus-visible, .fit__handle.is-dragging { r: 22; }
+  }
+</style>
