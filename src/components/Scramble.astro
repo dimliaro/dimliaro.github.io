@@ -1,0 +1,7 @@
+---
+/** Inline text that decodes through random glyphs into its counterpart on mode switch. */
+import type { Mode } from '../data/content';
+interface Props { data: string; it: string; mode: Mode; class?: string }
+const { data, it, mode, class: cls } = Astro.props;
+---
+<span class:list={['scramble', cls]} data-scramble data-data={data} data-it={it}>{mode === 'it' ? it : data}</span>

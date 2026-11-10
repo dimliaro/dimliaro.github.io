@@ -1,0 +1,55 @@
+---
+interface Props { job: { role: string; org: string; period: string; points: string[] } }
+const { job: j } = Astro.props;
+---
+<article class="job panel">
+  <header class="job__head">
+    <div>
+      <h3 class="job__role">{j.role}</h3>
+      <p class="job__org">{j.org}</p>
+    </div>
+    <span class="job__period">{j.period}</span>
+  </header>
+  <ul class="job__points">
+    {j.points.map((pt) => <li>{pt}</li>)}
+  </ul>
+</article>
+
+<style>
+  .job {
+    height: 100%;
+    padding: 1.5rem 1.6rem;
+  }
+
+  .job__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+  }
+
+  .job__role { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.015em; }
+  .job__org { margin-top: 0.25rem; color: var(--accent); font-size: var(--fs-sm); }
+
+  .job__period {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .job__points {
+    margin: 1rem 0 0;
+    padding-left: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    color: var(--text-soft);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+  }
+  .job__points li::marker { content: '–  '; color: var(--text-muted); }
+
+</style>

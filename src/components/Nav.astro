@@ -1,93 +1,135 @@
 ---
+import type { Mode } from '../data/content';
+interface Props { mode: Mode }
+const { mode } = Astro.props;
 ---
 <nav class="nav" aria-label="Main">
-  <a href="#top" class="nav__logo" aria-label="Home">
-    <span class="nav__logo-mark" aria-hidden="true">DL</span>
-    <span class="nav__logo-text">Dimitris Liaropoulos</span>
-  </a>
+  <a href="#top" class="nav__logo" aria-label="Home">DL</a>
+
   <ul class="nav__links">
     <li><a href="#about">About</a></li>
     <li><a href="#experience">Experience</a></li>
-    <li><a href="#projects">Projects</a></li>
+    <li><a href="#work">Work</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
+
+  <button
+    class="mode-switch"
+    type="button"
+    role="switch"
+    aria-checked={mode === 'it' ? 'true' : 'false'}
+    aria-label="Show IT & hardware portfolio"
+    data-mode-toggle
+  >
+    <span class="mode-switch__thumb" aria-hidden="true"></span>
+    <span class="mode-switch__opt mode-switch__opt--data" aria-hidden="true">Data</span>
+    <span class="mode-switch__opt mode-switch__opt--it" aria-hidden="true">IT</span>
+  </button>
 </nav>
 
 <style>
   .nav {
     position: fixed;
-    top: 1.2rem;
+    top: 1rem;
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 0.55rem 0.55rem 0.55rem 0.85rem;
-    background: rgba(255, 248, 238, 0.85);
-    backdrop-filter: blur(14px) saturate(160%);
-    -webkit-backdrop-filter: blur(14px) saturate(160%);
-    border: 2px solid var(--ink);
+    gap: 1.25rem;
+    width: min(760px, calc(100% - 1.5rem));
+    padding: 0.4rem 0.4rem 0.4rem 0.5rem;
+    background: rgba(16, 17, 20, 0.72);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid var(--line);
     border-radius: var(--r-pill);
-    box-shadow: var(--shadow-sticker);
-    width: min(720px, calc(100% - 1.6rem));
-    max-width: 100%;
+    box-shadow: var(--edge), 0 10px 30px -15px rgba(0, 0, 0, 0.9);
   }
 
   .nav__logo {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  .nav__logo-mark {
     display: grid;
     place-items: center;
     width: 34px;
     height: 34px;
+    flex-shrink: 0;
     border-radius: 50%;
-    background: var(--coral);
-    color: var(--paper);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 0.95rem;
-    border: 2px solid var(--ink);
-  }
-
-  .nav__logo-text {
-    font-size: var(--fs-sm);
-    letter-spacing: -0.01em;
+    background: var(--metal);
+    color: #121317;
+    font: 600 0.78rem/1 var(--font-mono);
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3);
   }
 
   .nav__links {
     list-style: none;
-    margin: 0;
-    padding: 0;
     display: flex;
-    align-items: center;
-    gap: 1.1rem;
-    margin-left: auto;
-    padding-right: 0.4rem;
+    gap: 1.4rem;
+    margin: 0 auto 0 0.4rem;
+    padding: 0;
   }
 
   .nav__links a {
     font-size: var(--fs-sm);
-    font-weight: 500;
-    color: var(--ink-soft);
-    transition: color 0.2s ease;
+    color: var(--text-soft);
+    transition: color 0.25s ease;
+  }
+  .nav__links a:hover { color: var(--text); }
+
+  /* ---------- Data / IT switch ---------- */
+  .mode-switch {
+    --opt-w: 3.4rem;
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    padding: 3px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    background: var(--carbon), #0C0D10;
+    cursor: pointer;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
   }
 
-  .nav__links a:hover { color: var(--coral); }
-
-  @media (max-width: 680px) {
-    .nav__logo-text { display: none; }
+  .mode-switch__opt {
+    position: relative;
+    z-index: 1;
+    width: var(--opt-w);
+    padding: 0.45rem 0;
+    text-align: center;
+    font: 500 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    transition: color 0.5s var(--ease-mech);
   }
 
-  @media (max-width: 560px) {
-    .nav { gap: 0.6rem; padding: 0.45rem 0.55rem 0.45rem 0.65rem; }
-    .nav__links { gap: 0.7rem; }
+  .mode-switch__thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: var(--opt-w);
+    height: calc(100% - 6px);
+    border-radius: var(--r-pill);
+    background: linear-gradient(180deg, #3A3E46, #22252B);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
+      0 0 18px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+    transition: transform 0.6s var(--ease-mech);
+  }
+
+  :global([data-mode='data']) .mode-switch__opt--data,
+  :global([data-mode='it']) .mode-switch__opt--it { color: var(--text); }
+  :global([data-mode='it']) .mode-switch__thumb { transform: translateX(var(--opt-w)); }
+
+  @media (max-width: 620px) {
+    .nav { gap: 0.6rem; }
+    .nav__links { gap: 0.85rem; margin-left: 0.1rem; }
     .nav__links a { font-size: var(--fs-xs); }
+    .mode-switch { --opt-w: 2.8rem; }
+  }
+
+  @media (max-width: 420px) {
+    .nav__links li:first-child { display: none; }
   }
 </style>

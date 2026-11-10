@@ -1,49 +1,125 @@
 ---
-interface Props {
-  title?: string;
-  description?: string;
-}
+import { meta, type Mode } from '../data/content';
 
-const {
-  title = 'Dimitris Liaropoulos — Data Analyst · Python, SQL & AI/LLM tools',
-  description = 'Dimitris Liaropoulos — Computer Science graduate (AUEB) from Athens building a career in data. Python, SQL, EDA, RAG pipelines and football analytics. Open to junior data roles.'
-} = Astro.props;
+interface Props { mode: Mode }
+const { mode } = Astro.props;
+const { title, description } = meta[mode];
 ---
 <!doctype html>
-<html lang="en">
+<html
+  lang="en"
+  data-mode={mode}
+  data-title-data={meta.data.title}
+  data-title-it={meta.it.title}
+  data-path-data={meta.data.path}
+  data-path-it={meta.it.path}
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     <meta name="author" content="Dimitris Liaropoulos" />
-    <meta name="theme-color" content="#FFF8EE" />
+    <meta name="theme-color" content="#0A0B0D" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta name="twitter:card" content="summary" />
+    <link rel="canonical" href={new URL(meta[mode].path, Astro.site)} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
-    <!-- Flag JS early so .reveal elements are only hidden when the observer will un-hide them -->
     <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
   <body>
+    <div class="sweep" aria-hidden="true"></div>
     <main>
       <slot />
     </main>
 
     <script>
+      const root = document.documentElement;
+      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+      /* ---------- scroll reveal ---------- */
       const io = new IntersectionObserver(
         (entries) => {
-          entries.forEach((e) => {
-            if (e.isIntersecting) {
-              e.target.classList.add('is-visible');
-              io.unobserve(e.target);
-            }
-          });
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            e.target.classList.add('is-visible');
+            io.unobserve(e.target);
+          }
         },
-        { threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
+        { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
       );
       document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+      /* ---------- text scramble ---------- */
+      const GLYPHS = '01#/\\<>_=+*[]{}%$';
+      const randomGlyph = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      const escapeHtml = (s: string) =>
+        s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+      const frames = new WeakMap<Element, number>();
+
+      function scramble(el: HTMLElement, to: string) {
+        cancelAnimationFrame(frames.get(el) ?? 0);
+        if (reduceMotion.matches) { el.textContent = to; return; }
+
+        const from = el.textContent ?? '';
+        const len = Math.max(from.length, to.length);
+        const queue = Array.from({ length: len }, (_, i) => {
+          const start = Math.floor(Math.random() * 22);
+          return { from: from[i] ?? '', to: to[i] ?? '', start, end: start + 10 + Math.floor(Math.random() * 22), ch: '' };
+        });
+
+        let frame = 0;
+        const tick = () => {
+          let out = '';
+          let done = 0;
+          for (const q of queue) {
+            if (frame >= q.end) { done++; out += escapeHtml(q.to); }
+            else if (frame >= q.start) {
+              if (!q.ch || Math.random() < 0.3) q.ch = randomGlyph();
+              out += q.to === ' ' && q.from === ' ' ? ' ' : `<span class="glyph">${escapeHtml(q.ch)}</span>`;
+            } else out += escapeHtml(q.from);
+          }
+          if (done === queue.length) { el.textContent = to; return; }
+          el.innerHTML = out;
+          frame++;
+          frames.set(el, requestAnimationFrame(tick));
+        };
+        tick();
+      }
+
+      /* ---------- mode switch ---------- */
+      type Mode = 'data' | 'it';
+      let settleTimer = 0;
+
+      function setMode(mode: Mode) {
+        if (root.dataset.mode === mode) return;
+
+        // restart the sweep animation even on rapid toggles
+        root.classList.remove('is-switching');
+        void root.offsetWidth;
+        root.classList.add('is-switching');
+        root.dataset.mode = mode;
+
+        document.querySelectorAll<HTMLElement>('[data-scramble]').forEach((el) => {
+          scramble(el, (mode === 'it' ? el.dataset.it : el.dataset.data) ?? '');
+        });
+        document.querySelectorAll('[data-mode-toggle][role="switch"]').forEach((b) => {
+          b.setAttribute('aria-checked', String(mode === 'it'));
+        });
+
+        document.title = (mode === 'it' ? root.dataset.titleIt : root.dataset.titleData) ?? document.title;
+        const path = mode === 'it' ? root.dataset.pathIt : root.dataset.pathData;
+        if (path) history.replaceState(null, '', path + location.hash);
+
+        clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(() => root.classList.remove('is-switching'), 1700);
+      }
+
+      document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
+        btn.addEventListener('click', () => setMode(root.dataset.mode === 'it' ? 'data' : 'it'));
+      });
     </script>
   </body>
 </html>

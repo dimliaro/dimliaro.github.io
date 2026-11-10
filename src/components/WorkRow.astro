@@ -1,0 +1,60 @@
+---
+interface Props { row: { title: string; blurb: string; year: string; stack: string; href?: string; status?: string } }
+const { row: r } = Astro.props;
+// rows without a link render as plain rows, so they don't look clickable
+const Tag = r.href ? 'a' : 'div';
+const attrs = r.href
+  ? { href: r.href, ...(r.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {}) }
+  : {};
+---
+<Tag class:list={['orow', { 'orow--static': !r.href }]} {...attrs}>
+  <span class="orow__title">
+    {r.title}
+    {r.status && <span class="orow__status">{r.status}</span>}
+  </span>
+  <span class="orow__blurb">{r.blurb}</span>
+  <span class="orow__stack">{r.stack}</span>
+  <span class="orow__year">{r.year}</span>
+  <span class="orow__arrow" aria-hidden="true">{r.href ? '↗' : ''}</span>
+</Tag>
+
+<style>
+  .orow {
+    display: grid;
+    grid-template-columns: 1.1fr 1.6fr 0.8fr 80px 20px;
+    gap: 1.5rem;
+    align-items: baseline;
+    height: 100%;
+    padding: 1.15rem 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    transition: padding 0.4s var(--ease-out), background 0.4s ease;
+  }
+
+  .orow:not(.orow--static):hover { padding-left: 0.6rem; padding-right: 0.6rem; background: var(--bg-2); }
+
+  .orow__title { font-weight: 500; display: flex; align-items: center; gap: 0.6rem; }
+
+  .orow__status {
+    font: 500 0.62rem/1 var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 0.25rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-radius: 4px;
+  }
+
+  .orow__blurb { color: var(--text-soft); font-size: var(--fs-sm); }
+  .orow__stack, .orow__year { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-muted); }
+  .orow__arrow { color: var(--text-muted); transition: color 0.3s ease, transform 0.3s var(--ease-out); }
+  .orow:hover .orow__arrow { color: var(--accent); transform: translate(2px, -2px); }
+
+  @media (max-width: 900px) {
+    .orow { grid-template-columns: 1fr auto; gap: 0.3rem 1rem; }
+    .orow__blurb { grid-column: 1 / -1; grid-row: 2; }
+    .orow__stack { grid-row: 3; }
+    .orow__year { grid-row: 3; text-align: right; }
+    .orow__arrow { grid-row: 1; grid-column: 2; }
+  }
+</style>

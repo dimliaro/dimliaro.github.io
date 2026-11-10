@@ -1,0 +1,25 @@
+---
+/**
+ * Holds the data-side and IT-side version of a block in the same grid cell.
+ * The active face is chosen by <html data-mode>; switching animates per variant:
+ *   flip-y — rotates around the vertical axis (cards)
+ *   flip-x — rotates around the horizontal axis, like a split-flap row
+ *   fade   — crossfade with a short lift (running text)
+ * `i` staggers the animation so neighbours turn one after another.
+ */
+interface Props {
+  as?: string;
+  variant?: 'flip-y' | 'flip-x' | 'fade';
+  i?: number;
+  class?: string;
+  style?: string;
+  [key: string]: unknown; // passes the parent's scoped-style attribute through
+}
+const { as: Tag = 'div', variant = 'fade', i = 0, class: cls, style = '', ...rest } = Astro.props;
+---
+<Tag {...rest} class:list={['dual', `dual--${variant}`, cls]} style={`--i:${i};${style}`}>
+  <div class="dual__inner">
+    <div class="dual__face dual__face--data"><slot name="data" /></div>
+    <div class="dual__face dual__face--it"><slot name="it" /></div>
+  </div>
+</Tag>

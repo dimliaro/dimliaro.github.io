@@ -1,0 +1,86 @@
+---
+interface Props {
+  c: {
+    headline: string; project: string; year: string; stack: string[];
+    problem: string; approach: string; result: string;
+    links: { label: string; href: string }[];
+  };
+}
+const { c } = Astro.props;
+const external = (href: string) =>
+  href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+---
+<div class="case__body">
+  <p class="case__meta">
+    <span>{c.project}</span>
+    <span>{c.year}</span>
+  </p>
+  <h3 class="case__headline">{c.headline}</h3>
+  <dl class="case__steps">
+    <div><dt>Problem</dt><dd>{c.problem}</dd></div>
+    <div><dt>Approach</dt><dd>{c.approach}</dd></div>
+    <div><dt>Result</dt><dd>{c.result}</dd></div>
+  </dl>
+  <div class="case__foot">
+    <ul class="case__stack">{c.stack.map((t) => <li class="tag">{t}</li>)}</ul>
+    <div class="case__links">
+      {c.links.map((l) => <a class="arrow-link" href={l.href} {...external(l.href)}>{l.label}</a>)}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ---------- write-up ---------- */
+  .case__body { display: flex; flex-direction: column; gap: 1.1rem; }
+
+  .case__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+  .case__meta span:first-child { color: var(--accent); }
+
+  .case__headline {
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+  }
+
+  .case__steps { margin: 0.3rem 0 0; display: flex; flex-direction: column; }
+
+  .case__steps div {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .case__steps dt {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-top: 0.2rem;
+  }
+
+  .case__steps dd { margin: 0; color: var(--text-soft); font-size: var(--fs-sm); line-height: 1.6; }
+
+  .case__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 0.4rem;
+  }
+
+  .case__stack { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .case__links { display: flex; gap: 1.2rem; }
+
+</style>

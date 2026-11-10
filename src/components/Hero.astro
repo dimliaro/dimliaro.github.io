@@ -1,148 +1,187 @@
 ---
-const stack = ['📊 Python', '🐼 pandas', '🧮 SQL', '📓 Jupyter', '📈 matplotlib · seaborn', '🤖 LLMs · RAG', '🔧 Git'];
+import Dual from './Dual.astro';
+import Scramble from './Scramble.astro';
+import { hero, cvHref, type Mode } from '../data/content';
+interface Props { mode: Mode }
+const { mode } = Astro.props;
 ---
 <section id="top" class="hero">
-  <span class="blob blob--coral"></span>
-  <span class="blob blob--mint"></span>
-  <span class="blob blob--lemon"></span>
+  <div class="container hero__grid">
+    <div class="hero__main">
+      <p class="hero__status reveal">
+        <span class="hero__dot" aria-hidden="true"></span>
+        <Scramble mode={mode} {...hero.status} />
+      </p>
 
-  <div class="container hero__inner">
-    <div class="hero__intro reveal">
-      <span class="sticker">
-        <span class="live-dot"></span>
-        Open to junior data roles
-      </span>
+      <h1 class="hero__name reveal" style="--d:1">
+        <span class="metal">Dimitris<br />Liaropoulos</span>
+      </h1>
+
+      <p class="hero__line reveal" style="--d:2">
+        <Scramble mode={mode} {...hero.line} />
+      </p>
+
+      <Dual class="hero__lede reveal" style="--d:3" i={2}>
+        <p slot="data">{hero.lede.data}</p>
+        <p slot="it">{hero.lede.it}</p>
+      </Dual>
+
+      <div class="hero__cta reveal" style="--d:4">
+        <a class="btn" href="#work">
+          See the work
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn--ghost" href={cvHref[mode]} target="_blank" rel="noopener">Download CV</a>
+        <button class="hero__switch" type="button" data-mode-toggle>
+          <span aria-hidden="true">⇄</span>
+          <Scramble mode={mode} {...hero.switchLabel} />
+        </button>
+      </div>
     </div>
 
-    <h1 class="hero__title reveal">
-      Hey, I'm <span class="mark-coral">Dimitris</span>.<br/>
-      I turn <span class="squiggle">data</span> &amp; <span class="squiggle mint">code</span><br/>
-      into things that <span class="mark-lavender">work</span>.
-    </h1>
-
-    <p class="hero__lede reveal">
-      Computer Science graduate (AUEB) from Athens, building a career
-      in data. I use Python and SQL to collect, clean and analyse data,
-      and AI/LLM tools daily to build data workflows — from football xG
-      models to RAG pipelines over EU legislation.
-    </p>
-
-    <div class="hero__cta reveal">
-      <a class="btn" href="#projects">
-        See my work
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M5 12h14M13 6l6 6-6 6"/>
-        </svg>
-      </a>
-      <a class="btn btn--ghost" href="/Dimitris_Liaropoulos_CV.pdf" target="_blank" rel="noopener">
-        Download CV
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 4v12M6 11l6 6 6-6M5 20h14"/>
-        </svg>
-      </a>
-    </div>
-
-    <ul class="hero__strip reveal" aria-label="What I work with">
-      {stack.map((item) => <li>{item}</li>)}
-    </ul>
+    <aside class="spec panel reveal" style="--d:3" aria-label="Summary">
+      <div class="spec__head">
+        <span>spec.sheet</span>
+        <span class="spec__led" aria-hidden="true"></span>
+      </div>
+      <dl class="spec__rows">
+        {hero.spec.map((row) => (
+          <div class="spec__row">
+            <dt>{row.key}</dt>
+            <dd><Scramble mode={mode} data={row.data} it={row.it} /></dd>
+          </div>
+        ))}
+      </dl>
+    </aside>
   </div>
 </section>
 
 <style>
   .hero {
-    min-height: 100vh;
     min-height: 100svh;
     display: flex;
     align-items: center;
-    padding-top: 7rem;
-    padding-bottom: 4rem;
-    overflow: hidden;
+    padding: 8rem 0 5rem;
   }
 
-  .hero__inner {
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 1fr 370px;
+    gap: 4rem;
+    align-items: end;
   }
 
-  .hero__intro { display: flex; }
+  .hero__main { display: flex; flex-direction: column; gap: 1.5rem; }
 
-  .hero__title {
+  .hero__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .hero__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px transparent; } }
+
+  .hero__name {
     font-size: var(--fs-display);
     font-weight: 500;
-    font-variation-settings: 'opsz' 144, 'SOFT' 100;
-    max-width: 18ch;
-    margin-top: 0.2em;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+  }
+
+  .hero__line {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    color: var(--text);
+    min-height: 1.2em;
   }
 
   .hero__lede {
+    max-width: 58ch;
+    color: var(--text-soft);
     font-size: var(--fs-md);
-    color: var(--ink-soft);
-    max-width: 56ch;
-    line-height: 1.55;
+    line-height: 1.65;
   }
 
   .hero__cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.85rem;
-    margin-top: 0.4rem;
-  }
-
-  .hero__strip {
-    list-style: none;
-    margin: 1.8rem 0 0;
-    padding: 1.6rem 0 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem 1rem;
     align-items: center;
-    border-top: 1.5px dashed var(--ink-muted);
-    color: var(--ink-soft);
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .hero__switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.25rem;
+    padding: 0.5rem 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font: 500 var(--fs-xs)/1 var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .hero__switch span:first-child { transition: transform 0.5s var(--ease-mech); }
+  .hero__switch:hover span:first-child { transform: rotate(180deg); }
+
+  /* ---------- spec sheet ---------- */
+  .spec { padding: 1.1rem 1.25rem 1.25rem; }
+
+  .spec__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.9rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
     font-family: var(--font-mono);
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
   }
 
-  .hero__strip li + li::before {
-    content: '•';
-    margin-right: 1rem;
-    color: var(--ink-muted);
+  .spec__led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
   }
 
-  /* blob colors & positions */
-  .blob--coral {
-    background: var(--coral);
-    width: 420px;
-    height: 420px;
-    top: -120px;
-    right: -80px;
-    animation-delay: -2s;
-  }
-  .blob--mint {
-    background: var(--mint);
-    width: 360px;
-    height: 360px;
-    bottom: -120px;
-    left: -100px;
-    animation-delay: -7s;
-  }
-  .blob--lemon {
-    background: var(--lemon);
-    width: 280px;
-    height: 280px;
-    top: 35%;
-    right: 35%;
-    animation-delay: -12s;
-    opacity: 0.4;
-  }
+  .spec__rows { margin: 0; }
 
-  @media (max-width: 700px) {
-    .hero { padding-top: 6rem; }
-    .blob--coral { width: 280px; height: 280px; }
-    .blob--mint { width: 240px; height: 240px; }
-    .blob--lemon { width: 180px; height: 180px; }
-    /* wrapped lines would start with a stray bullet — drop separators on small screens */
-    .hero__strip { gap: 0.5rem 1.2rem; }
-    .hero__strip li + li::before { content: none; }
+  .spec__row {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+  .spec__row:last-child { border-bottom: 0; padding-bottom: 0; }
+
+  .spec__row dt { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .spec__row dd { margin: 0; color: var(--text); }
+
+  @media (max-width: 900px) {
+    .hero__grid { grid-template-columns: 1fr; gap: 3rem; }
+    .spec { max-width: 420px; }
   }
 </style>

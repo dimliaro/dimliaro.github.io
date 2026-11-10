@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from './Nav.astro';
+import Hero from './Hero.astro';
+import About from './About.astro';
+import Experience from './Experience.astro';
+import Projects from './Projects.astro';
+import Contact from './Contact.astro';
+import type { Mode } from '../data/content';
+
+interface Props { mode: Mode }
+const { mode } = Astro.props;
+---
+<Layout mode={mode}>
+  <Nav mode={mode} />
+  <Hero mode={mode} />
+  <About mode={mode} />
+  <Experience />
+  <Projects />
+  <Contact mode={mode} />
+</Layout>
